@@ -1,12 +1,15 @@
 import json
 import sys
 import importlib
+import boto
+
+from boto.s3.connection import S3Connection
+from boto.s3.connection import Location
+from boto.s3.key import Key
 from documentcloud import DocumentCloud
 from documentparserator.utils import sort_keys
-from documentparserator.settings import Settings
 
-settings = Settings()
-MODULE = importlib.import_module(settings.MODULELOCATION)
+MODULE = importlib.import_module('documentparserator.parserator.contract_parser')
 client = DocumentCloud()
 
 
@@ -51,10 +54,14 @@ def pre_process(doc_cloud_id):
         out.append(token)
     return out
 
-doc_cloud_id = sys.argv[1].replace("/backups/contracts", "").replace("_text.txt", "")
 
-print doc_cloud_id
+doc_cloud_id = sys.argv[1]
 
 parsed = pre_process(doc_cloud_id)
-with open(settings.LABELED_LOCATION + "/" + doc_cloud_id, "w") as f:
-    f.write(json.dumps(parsed))
+
+conn = S3Connection()
+bucket = conn.get_bucket('lensnola')
+k = Key(bucket)
+k.key = 'contracts/contract_amounts/computer_labels/' + doc_cloud_id
+
+k.set_contents_from_string(json.dumps(parsed))

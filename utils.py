@@ -4,12 +4,10 @@ A few utility functions to support the web app
 import json
 import logging
 import importlib
-from documentparserator.settings import Settings
 from documentcloud import DocumentCloud
 
-SETTINGS = Settings()
-MODULE = importlib.import_module(SETTINGS.MODULELOCATION)
-logging.basicConfig(level=logging.DEBUG, filename=SETTINGS.LOG_LOCATION)
+MODULE = importlib.import_module('documentparserator.parserator.contract_parser')
+logging.basicConfig(level=logging.DEBUG, filename="parserator.log")
 CLIENT = DocumentCloud()
 
 
@@ -17,7 +15,7 @@ def get_colors(tag):
     """
     Get the colors for a certain tag
     """
-    with open(SETTINGS.TAGS_LOCATION) as data_file:
+    with open('/home/abe/research/documentparserator/webapp/static/json/tags.json') as data_file:
         data = json.load(data_file)
     return [d for d in data if d['name'] == tag].pop()
 
