@@ -6,7 +6,15 @@ import logging
 import os
 import importlib
 import json
+import boto
+
+from boto.s3.connection import S3Connection
+from boto.s3.connection import Location
+from boto.s3.key import Key
+from documentcloud import DocumentCloud
+
 from documentparserator.utils import spanify
+
 from documentparserator.utils import sort_keys
 from flask import render_template, request
 from documentcloud import DocumentCloud
@@ -19,7 +27,7 @@ MODULE = importlib.import_module(SETTINGS.MODULELOCATION)
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.DEBUG, filename=SETTINGS.LOG_LOCATION)
+#logging.basicConfig(level=logging.DEBUG, filename=SETTINGS.LOG_LOCATION)
 
 CLIENT = DocumentCloud()
 
@@ -104,6 +112,14 @@ def tokens_dump(docid):
     appendListToXMLfile(tagged_strings,
                         MODULE,
                         outfile)
+    
+    output = "".join([i for i in open(outfile, "r")])
+    conn = S3Connection()
+    bucket = conn.get_bucket('lensnola')
+    k = Key(bucket)
+    k.key = 'contracts/contract_amounts/human_labels/' + docid + ".xml"
+    k.set_contents_from_string(output)
+
     if len(queue) == 0:
         return "All done!"
     else:
@@ -125,4 +141,4 @@ def sort_have_labels(doc_cloud_id):
 
 if __name__ == "__main__":
     queue = get_queue(SETTINGS.DOC_CLOUD_IDS)
-    app.run()
+    app.run(debug=True)
